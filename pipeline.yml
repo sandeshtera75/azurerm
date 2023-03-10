@@ -1,0 +1,35 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: TerraformCLI@0
+    displayName: 'Init Terraform'
+    inputs:
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/'
+
+  - task: TerraformCLI@0
+    displayName: 'Terraform Plan'
+    inputs:
+      command: 'plan'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/'
+      environmentServiceNameAzureRM: '<your-Azure-service-connection-name>'
+      commandOptions: '-out=tfplan'
+
+  - task: TerraformCLI@0
+    displayName: 'Apply Terraform'
+    inputs:
+      command: 'apply'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/'
+      environmentServiceNameAzureRM: '<your-Azure-service-connection-name>'
+      commandOptions: '-auto-approve tfplan'
+
+  - task: PublishPipelineArtifact@0
+    displayName: 'Publish Terraform state file'
+    inputs:
+      artifactName: 'terraform-state'
+      publishDirectory: '$(System.DefaultWorkingDirectory)/'
+      targetPath: '$(Build.ArtifactStagingDirectory)/terraform-state'
